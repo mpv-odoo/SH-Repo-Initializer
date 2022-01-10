@@ -76,8 +76,8 @@ args = {}
 
 args['name'] = input('Please enter a name for the folder: ')
 args['origin'] = input('Please enter a valid git remote url (Press Enter to skip pushing to origin): ')
-args['staging'] = input('Please enter the number of staging branches to initialize: (1-3)')
-args['dev'] = input('Please enter the number of dev branches to initialize: (1-10)')
+args['staging'] = input('Please enter the number of staging branches to initialize (1-3): ')
+args['dev'] = input('Please enter the number of dev branches to initialize (1-10): ')
 
 try:
     sanitize_args(args)
