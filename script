@@ -94,7 +94,10 @@ if args['staging'] == 1:
     staging_description = '    - Staging Branch 1: **_sandbox_** \n'
 else:
     for branch_num in range(args['staging']):
-        staging_description += f'   - Staging Branch {branch_num + 1}: **_sandbox_{branch_num + 1}_**\n'
+        if branch_num == 0:
+            staging_description += f'   - Staging Branch {branch_num + 1}: **_sandbox_**\n'
+        else:
+            staging_description += f'   - Staging Branch {branch_num + 1}: **_dev-staging_{branch_num}_**\n'
 
 dev_description = ''
 if args['dev'] == 1:
@@ -268,7 +271,12 @@ subprocess.run(['git', 'branch', '-m', 'master', 'production'])
 ############################
 
 for branch_num in range(args['staging']):
-    subprocess.run(['git', 'branch', f'staging_{branch_num + 1}'])
+    if branch_num == 0:
+        branch_name = 'sandbox'
+    else:
+        branch_name = f'dev-staging_{branch_num}'
+
+    subprocess.run(['git', 'branch', branch_name])
 
 for branch_num in range(args['dev']):
     subprocess.run(['git', 'branch', f'dev_{branch_num + 1}'])
