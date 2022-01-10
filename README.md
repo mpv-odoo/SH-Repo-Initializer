@@ -7,5 +7,5 @@ Sets up a git repository to be ready to be imported into Odoo SH.
 - Optionally uploads repository to origin
 
 # Demo
-<img style="border-radius: 10px;" width="100%" src='demo.gif'/>
+<img style="border-radius: 10px;" width="100%" src='./demo.gif'/>
 
