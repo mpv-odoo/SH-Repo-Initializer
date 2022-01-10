@@ -1,0 +1,283 @@
+#!/usr/bin/env python3
+import os
+import subprocess
+import re
+
+'''
+Does the following checks for the following args:
+name:
+    - Makes sure string consists only of alphanumeric chars
+    - Makes sure folder doesn't already exist
+
+staging:
+    - Makes sure is valid integer
+    - Makes sure is in range from 1-3
+dev:
+    - Makes sure is valid integer
+    - Makes sure is in range from 1-10
+
+
+'''
+def sanitize_args(args):
+    if not re.match('^[A-Za-z0-9_-]*$', args['name']):
+        raise Exception('Folder name can only contain alphanumeric characters, _, and -')
+    if os.path.exists(args['name']):
+        raise Exception('Folder already exists with given name')
+
+    if not args['staging'].isdigit():
+        raise Exception('Invalid number for staging branches')
+    else:
+        args['staging'] = int(args['staging'])
+        if args['staging'] < 1 or args['staging'] > 3:
+            raise Exception('You can only have 1-3 staging branches')
+
+    if not args['dev'].isdigit():
+        raise Exception('Invalid number for development branches')
+    else:
+        args['dev'] = int(args['dev'])
+        if args['dev'] < 1 or args['dev'] > 10:
+            raise Exception('You can only have 1-10 development branches')
+
+
+
+
+############################
+####### Arg Parsing ########
+############################
+# parser = argparse.ArgumentParser()
+
+# parser.add_argument(
+#     'name',
+#     type=str,
+#     nargs='?',
+#     help='The directory to make the SH repository in'
+# )
+# parser.add_argument(
+#     '-o',
+#     '--origin',
+#     type=str,
+#     help='The remote origin of the github repo to upload to'
+# )
+# parser.add_argument(
+#     '-s',
+#     '--staging',
+#     type=int,
+#     help='The number of staging branches to set up'
+# )
+# parser.add_argument(
+#     '-d',
+#     '--dev',
+#     type=int,
+#     help='The number of dev branches'
+# )
+# args = parser.parse_args()
+args = {}
+
+
+args['name'] = input('Please enter a name for the folder: ')
+args['origin'] = input('Please enter a valid git remote url (Press Enter to skip pushing to origin): ')
+args['staging'] = input('Please enter the number of staging branches to initialize: (1-3)')
+args['dev'] = input('Please enter the number of dev branches to initialize: (1-10)')
+
+try:
+    sanitize_args(args)
+except Exception as e:
+    print(str(e))
+    exit(1)
+
+############################
+###### FORMAT README #######
+############################
+
+staging_description = ''
+if args['staging'] == 1:
+    staging_description = '    - Staging Branch 1: **_sandbox_** \n'
+else:
+    for branch_num in range(args['staging']):
+        staging_description += f'   - Staging Branch {branch_num + 1}: **_sandbox_{branch_num + 1}_**\n'
+
+dev_description = ''
+if args['dev'] == 1:
+    dev_description = '    - Dev Branch 1: **_sandbox_** \n'
+else:
+    for branch_num in range(args['staging']):
+        dev_description += f'   - Dev Branch {branch_num + 1}: **_dev_{branch_num + 1}_**\n'
+
+readme = f'''# {args['name']} (psus-{args['name'].lower()})
+
+## Branches :
+- SH Production Branch  : **_production_**
+- Sh Staging  (You can only have three staging branches):
+{staging_description}
+
+- Development (You can have as many development branches as you like): 
+{dev_description}
+   
+## Code of Conduct
+- **IMPORTANT : DO NOT COMMIT anything in the _production_ branch, because _production_ is the _Production Instance_**
+- If you want to start development branch fork new branch from _production_ or _staging_ branches and SH will automatically start new development build.'''
+
+############################
+###### ADD .gitignore ######
+############################
+gitignore = '''# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+
+# Mac OS System Configuration Files
+.DS_Store
+
+# Odoo configuration files
+odoo.conf'''
+
+
+############################
+###### Init Git Repo #######
+############################
+
+os.mkdir(args['name'])
+os.chdir(args['name'])
+
+
+subprocess.run(['git', 'init'])
+subprocess.run(['git', 'remote', 'add', 'origin', args['origin']])
+
+
+############################
+######## ADD FILES #########
+############################
+
+with open('README.md', 'x') as f:
+    print(readme, file=f)
+
+with open('.gitignore', 'x') as f:
+    print(gitignore, file=f)
+
+
+############################
+###### INITIAL COMMIT ######
+############################
+
+subprocess.run(['git', 'add', 'README.md', '.gitignore'])
+subprocess.run(['git', 'commit', '-m', '[INIT] Initialized Odoo SH repository'])
+subprocess.run(['git', 'branch', '-m', 'master', 'production'])
+
+############################
+##### CREATE BRANCHES ######
+############################
+
+for branch_num in range(args['staging']):
+    subprocess.run(['git', 'branch', f'staging_{branch_num + 1}'])
+
+for branch_num in range(args['dev']):
+    subprocess.run(['git', 'branch', f'dev_{branch_num + 1}'])
+
+
+''' Push production first so it beceomes default branch on GitHub'''
+if args['origin']:
+    subprocess.run(['git', 'push', '-u', 'origin', 'production'])
+    subprocess.run(['git', 'push', '--all', 'origin'])
+
+
+
