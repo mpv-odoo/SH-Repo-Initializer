@@ -100,11 +100,9 @@ else:
             staging_description += f'   - Staging Branch {branch_num + 1}: **_dev-staging_{branch_num}_**\n'
 
 dev_description = ''
-if args['dev'] == 1:
-    dev_description = '    - Dev Branch 1: **_sandbox_** \n'
-else:
-    for branch_num in range(args['staging']):
-        dev_description += f'   - Dev Branch {branch_num + 1}: **_dev_{branch_num + 1}_**\n'
+
+for branch_num in range(args['staging']):
+    dev_description += f'   - Dev Branch {branch_num + 1}: **_dev_{branch_num + 1}_**\n'
 
 readme = f'''# {args['name']} (psus-{args['name'].lower()})
 
